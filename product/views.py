@@ -4,6 +4,7 @@ from rest_framework.decorators import action
 from . import serializers
 from .models import Product
 from .permissions import IsAuthor
+from rating.serializers import ReviewSerializer
 
 
 class ProductViewSet(ModelViewSet):
@@ -21,3 +22,18 @@ class ProductViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
+
+    @action(['GET', 'POST'], detail=True)
+    def reviews(self, request, pk):
+        product = self.get_object()
+        if request.method == 'GET':
+            reviews = product.reviews.all()
+            serializer = ReviewSerializer(reviews, many=True)
+            return response.Response(serializer.data, status=200)
+        if product.reviews.filter(owner=request.user).exists():
+            return response.Response('Вы уже оставляли отзыв!!', status=400)
+        data = request.data
+        serializer = ReviewSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(owner=request.user, product=product)
+        return response.Response(serializer.data, status=201)
