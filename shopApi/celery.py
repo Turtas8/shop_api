@@ -14,6 +14,6 @@ app.autodiscover_tasks()
 app.conf.beat_schedule = {
     'send-spam-every-5-minutes': {
         'task': 'shopApi.tasks.send_spam_email',
-        'schedule': crontab(minute='*/5')
+        'schedule': crontab(minute='*/1')
     }
 }
